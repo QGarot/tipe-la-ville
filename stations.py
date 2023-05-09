@@ -6,5 +6,3 @@ class Station:
         self.y = y
         self.capacity = capacity
         self.current_people = current_people
-
-
