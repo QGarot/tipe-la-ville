@@ -1,4 +1,4 @@
-from road_network import Node, RoadNetwork
+from pathfinder.road_network import Node, RoadNetwork
 
 # some tests
 nodes = [

@@ -59,22 +59,10 @@ class Node:
         return self.get_heuristic() + self.get_cost()
 
     def get_parent_node(self) -> Self:
+        """
+        :return: Retourne le noeud parent, ie le noeud duquel on vient pour arriver à CE noeud
+        """
         return self.parent_node
-
-    def build_path_to(self, node) -> list:
-        """
-        Construit le chemin allant de 'node' (entré en paramètre) jusqu'à CE noeud.
-        :param node:
-        :return: la liste de noeud construite récursivement correspondant à ce chemin.
-        Si CE noeud (self) n'est pas le noeud final (node), alors ajouter self à la liste créée récursivement par
-        l'appel de build_path_to(node) depuis le parent de self.
-        """
-        if node.get_id() == self.get_id():
-            return [node]
-        else:
-            res = self.get_parent_node().build_path_to(node)
-            res.append(self)
-            return res
 
 
 class PriorityQueue(list[Node]):
@@ -205,7 +193,32 @@ class RoadNetwork:
 
         return neighbors
 
+    @staticmethod
+    def build_path_to(start: Node, final: Node) -> list[Node]:
+        """
+        Construit le chemin allant de 'node' (entré en paramètre) jusqu'à CE noeud.
+        :param final:
+        :param start:
+        :return: la liste de noeud construite récursivement correspondant à ce chemin.
+        Si CE noeud (self) n'est pas le noeud final (node), alors ajouter self à la liste créée récursivement par
+        l'appel de build_path_to(node) depuis le parent de self.
+        """
+        current_node = final
+        path = [final]
+        while current_node.get_id() != start.get_id():
+            current_node = current_node.get_parent_node()
+            path.append(current_node)
+
+        path.reverse()
+        return path
+
     def pathfinder(self, start_id: int, goal_id: int) -> list[int]:
+        """
+        Première version du pathfinder.
+        :param start_id:
+        :param goal_id:
+        :return: le chemin le plus court allant du noeud ayant pour id start_id au noeud ayant pour id goal_id
+        """
         network = self.get_network_matrix()
         # Création de la file de priorité
         prio_queue = PriorityQueue(self.get_highest_heuristic_node)
@@ -219,7 +232,7 @@ class RoadNetwork:
         while not prio_queue.is_empty():
             current = prio_queue.pull()
             if current.get_id() == goal.get_id():
-                return self.filter_path_id(goal.build_path_to(start))
+                return self.filter_path_id(self.build_path_to(start, goal))
             else:
                 for neighbor in self.get_neighbors(current):
                     new_cost = current.get_cost() + network[current.get_id()][neighbor.get_id()]

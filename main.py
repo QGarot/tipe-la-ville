@@ -1,5 +1,5 @@
 import networkx as nx
-from database import Database
+from database.database import Database
 import matplotlib.pyplot as plt
 from platforms import Platform
 from stations import Station
