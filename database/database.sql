@@ -17,10 +17,10 @@ CREATE TABLE platforms (
 CREATE TABLE stations (
   id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
   name VARCHAR(255),
-  localisaion_x FLOAT,
+  localisation_x FLOAT,
   localisation_y FLOAT,
-  capacity INT,
-  current_people INT NOT NULL
+  capacity INT DEFAULT 25,
+  current_people INT NOT NULL DEFAULT 0
 );
 
 --

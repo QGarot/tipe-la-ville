@@ -88,6 +88,31 @@ class Database:
 
         self.close_connection()
 
+    def get(self, sql: str) -> []:
+        """
+        Permet de récupérer des informations contenues dans la base de données.
+        :param sql:
+        :return: n-tuple
+        """
+        self.prepare_db()
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        self.close_connection()
+        return result
+
+    def set(self, sql: str) -> None:
+        """
+        Permet d'effectuer une action sur la base de données (insertion, modification, suppression).
+        :param sql:
+        :return:
+        """
+        self.prepare_db()
+
+        self.cursor.execute(sql)
+        self.connection.commit()
+
+        self.close_connection()
+
     def insert(self, table_name, structure, values):
         """
         Permet d'insérer de nouveaux enregistrements dans une table.
