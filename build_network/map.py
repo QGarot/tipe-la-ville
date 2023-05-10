@@ -31,8 +31,8 @@ class Map:
         self.image = np.asarray(Image.open(city_map))
         self.fig, self.ax = plt.subplots()
         self.db = db
-
         self.graph = None
+        self.adjacency_matrix = None
 
     def place_station(self, event) -> None:
         """
@@ -53,8 +53,9 @@ class Map:
         Affiche la carte de la ville sur laquelle il est possible de positionner des stations.
         :return:
         """
-        plt.imshow(self.image)
         self.fig.canvas.mpl_connect('button_press_event', self.place_station)
+        plt.axis([0, 1420, 0, 829])
+        plt.imshow(self.image, extent=(0, 1420, 0, 829))
         plt.show()
 
     def display_map_with_stations(self) -> None:
@@ -62,11 +63,15 @@ class Map:
         Affiche la carte de la ville ainsi que les différentes stations.
         :return:
         """
-        x = [station.get_x() for station in self.get_stations()]
-        y = [station.get_y() for station in self.get_stations()]
+        for station in self.get_stations():
+            plt.text(x=station.get_x(),
+                     y=station.get_y(),
+                     s=str(station.get_id()),
+                     horizontalalignment="center",
+                     bbox=dict(boxstyle="round", color="#FF4633", alpha=0.6))
 
-        plt.imshow(self.image)
-        plt.scatter(x=x, y=y, c="#FF4633", linewidths=1.3, edgecolors="#7A0C00", s=200, alpha=0.6)
+        plt.axis([0, 1420, 0, 829])
+        plt.imshow(self.image, extent=(0, 1420, 0, 829))
         plt.show()
 
     def get_stations(self) -> list[Station]:
@@ -81,32 +86,59 @@ class Map:
 
         return stations
 
-    def create_graph(self) -> None:
+    def set_adjacency_matrix(self, matrix: list[list]) -> None:
         """
-        Crée le graphe représentant les stations de la ville
+        Initialise la matrice d'adjacence des stations : celle-ci représente les liens entre elles.
+        :param matrix:
+        :return:
+        """
+        self.adjacency_matrix = matrix
+
+    def get_adjacency_matrix(self) -> list[list]:
+        """
+        :return: La matrice d'adjacence
+        """
+        return self.adjacency_matrix
+
+    def display_graph(self) -> None:
+        """
+        Crée et affiche le graphe représentant les stations de la ville
         :return:
         """
         self.graph = nx.Graph()
 
-        # Nodes
         for station in self.get_stations():
-            self.graph.add_node(station.id, pos=(station.get_x(), station.get_y()))
+            self.graph.add_node(station.get_id(), pos=(station.get_x(), station.get_y()))
 
-        # TODO: edges
+        try:
+            n = len(self.get_adjacency_matrix())
+            for i in range(n):
+                for j in range(n):
+                    if self.get_adjacency_matrix()[i][j] == 1:
+                        self.graph.add_edge(i + 1, j + 1)
+        except:
+            print("Il faut créer la matrice d'adj. !")
 
-    def display_stations(self) -> None:
-        """
-        Affiche un graphe représentant uniquement les stations de la ville
-        (peu utile pour la suite...)
-        :return:
-        """
-        self.create_graph()
         nx.draw(self.graph, nx.get_node_attributes(self.graph, 'pos'), with_labels=True)
         plt.show()
 
 
 db = Database("localhost", "root", "", "tipe_ville")
 city = Map("img/map2.png", db)
-city.display_interactive_map()
+# Permet de définir les stations (les noeuds)
+# city.display_interactive_map()
 city.display_map_with_stations()
-city.display_stations()
+
+# Permet de définir les liens entre les stations, ie lesquelles sont reliées entre elles ?
+city.set_adjacency_matrix([
+    [0, 1, 1, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 0],
+    [1, 1, 0, 1, 1, 0, 0, 0],
+    [0, 0, 1, 0, 1, 0, 1, 1],
+    [0, 0, 0, 1, 0, 1, 1, 0],
+    [0, 0, 0, 0, 1, 0, 1, 0],
+    [0, 0, 0, 1, 1, 1, 0, 1],
+    [1, 0, 0, 1, 0, 0, 1, 0]
+])
+
+city.display_graph()
