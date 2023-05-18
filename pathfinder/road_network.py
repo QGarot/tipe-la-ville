@@ -22,6 +22,28 @@ class Node:
         self.h = None
         self.parent_node = None
 
+    @classmethod
+    def get_highest_heuristic_node(cls, n1: Self, n2: Self) -> Self:
+        """
+        :param n1:
+        :param n2:
+        :return: Retourne le noeud possédant la valeur de f la plus petite
+        """
+        f1 = n1.get_f()
+        f2 = n2.get_f()
+        if f1 < f2:
+            return n1
+        else:
+            return n2
+
+    @classmethod
+    def parse_nodes_by_id(cls, nodes: list[Self]):
+        """
+        :param nodes:
+        :return: Retourne la liste des identifiants de chaque noeud composant la liste 'nodes' entré en paramètre
+        """
+        return [node.get_id() for node in nodes]
+
     def get_id(self) -> int:
         """
         :return: Retourne l'identifiant de ce noeud
@@ -114,12 +136,20 @@ class RoadNetwork:
     def __init__(self, nodes: list[Node], adjacency_matrix: list[list[float]]):
         self.nodes = nodes
         self.matrix = adjacency_matrix
+        self.network = None
+        self.set_network_matrix()
 
     @staticmethod
     def get_distance(n1: Node, n2: Node):
         dx = n2.get_x() - n1.get_x()
         dy = n2.get_y() - n1.get_y()
         return sqrt(dx ** 2 + dy ** 2)
+
+    @staticmethod
+    def get_manhattan_distance(n1: Node, n2: Node):
+        dx = abs(n2.get_x() - n1.get_x())
+        dy = abs(n2.get_y() - n1.get_y())
+        return dx + dy
 
     def get_adjacency_matrix(self) -> list[list[float]]:
         """
@@ -144,40 +174,22 @@ class RoadNetwork:
 
         return None
 
-    @staticmethod
-    def get_highest_heuristic_node(n1: Node, n2: Node) -> Node:
+    def set_network_matrix(self) -> None:
         """
-        :param n1:
-        :param n2:
-        :return: Retourne le noeud possédant la valeur de f la plus petite
-        """
-        f1 = n1.get_f()
-        f2 = n2.get_f()
-        if f1 < f2:
-            return n1
-        else:
-            return n2
-
-    @staticmethod
-    def filter_path_id(path: list[Node]):
-        return [node.get_id() for node in path]
-
-    def get_network_matrix(self) -> list[list[float]]:
-        """
-        :return: Retourne une matrice M telle que :
+        Initialise la matrice network, notée M, telle que :
         Quelque soit (i, j) deux identifiants de noeuds,
         - Si i et j correspondent à deux noeuds liés, alors M[i][j] est la distance les séparant
         - Si i = j, M[i][j] vaut 0
         - Si i et j correspondent à des noeuds non liés, alors M[i][j] vaut + l'infini (inf).
         """
-        res = []
+        self.network = []
         n = len(self.get_adjacency_matrix())
         for i in range(n):
             line = []
             for j in range(n):
                 if self.get_adjacency_matrix()[i][j] == 1:
-                    node_i = self.get_node_by_id(i)
-                    node_j = self.get_node_by_id(j)
+                    node_i = self.get_node_by_id(i + 1)
+                    node_j = self.get_node_by_id(j + 1)
                     distance = self.get_distance(node_i, node_j)
                     line.append(distance)
                 else:
@@ -185,40 +197,49 @@ class RoadNetwork:
                         line.append(0)
                     else:
                         line.append(float("inf"))
-            res.append(line)
-        return res
+            self.network.append(line)
+
+    def get_network(self) -> list[list[float]]:
+        """
+        :return: Retourne la matrice représentant le réseau de transport.
+        """
+        return self.network
 
     def get_neighbors(self, node: Node) -> list[Node]:
         """
         :param node:
         :return: Retourne la liste des voisins du noeud choisi
         """
-        i = node.get_id()
+        # i est la ligne de la matrice d'adjacence correspondant au noeud d'identifiant i.
+        i = node.get_id() - 1
         neighbors = []
         for j in range(len(self.get_adjacency_matrix())):
             if self.get_adjacency_matrix()[i][j] == 1:
-                neighbors.append(self.get_node_by_id(j))
+                neighbors.append(self.get_node_by_id(j + 1))
 
         return neighbors
 
-    @staticmethod
-    def build_path_to(start: Node, final: Node) -> list[Node]:
+    def build_path_to(self, start: Node, final: Node) -> list[Node]:
         """
-        Construit le chemin allant de 'node' (entré en paramètre) jusqu'à CE noeud.
+        Construit récursivement le chemin allant de 'final' à 'start'.
         :param final:
         :param start:
-        :return: la liste de noeud construite récursivement correspondant à ce chemin.
-        Si CE noeud (self) n'est pas le noeud final (node), alors ajouter self à la liste créée récursivement par
-        l'appel de build_path_to(node) depuis le parent de self.
+        :return: Retourne la liste de noeuds construite récursivement correspondant à ce chemin.
         """
-        current_node = final
-        path = [final]
-        while current_node.get_id() != start.get_id():
-            current_node = current_node.get_parent_node()
-            path.append(current_node)
+        if final == start:
+            return [final]
+        else:
+            res = self.build_path_to(start, final.get_parent_node())
+            res.append(final)
+            return res
 
-        path.reverse()
-        return path
+    def weight(self, n1: Node, n2: Node):
+        """
+        :param n1:
+        :param n2:
+        :return: Retourne le poids de l'arête partant de n1 jusqu'à n2.
+        """
+        return self.get_network()[n1.get_id() - 1][n2.get_id() - 1]
 
     def pathfinder(self, start_id: int, goal_id: int) -> list[int]:
         """
@@ -227,27 +248,34 @@ class RoadNetwork:
         :param goal_id:
         :return: le chemin le plus court allant du noeud ayant pour id start_id au noeud ayant pour id goal_id
         """
-        network = self.get_network_matrix()
         # Création de la file de priorité
-        prio_queue = PriorityQueue(self.get_highest_heuristic_node)
+        prio_queue = PriorityQueue(Node.get_highest_heuristic_node)
+
         # Initialisation des propriétés du noeud de départ
         start = self.get_node_by_id(start_id)
         goal = self.get_node_by_id(goal_id)
         start.g = 0
-        start.h = self.get_distance(start, goal)
+        start.h = self.get_manhattan_distance(start, goal)
+
         # Ajout du noeud de départ à la file de priorité
         prio_queue.add(start)
-        while not prio_queue.is_empty():
-            current = prio_queue.pull()
-            if current.get_id() == goal.get_id():
-                return self.filter_path_id(self.build_path_to(start, goal))
-            else:
-                for neighbor in self.get_neighbors(current):
-                    new_cost = current.get_cost() + network[current.get_id()][neighbor.get_id()]
-                    if neighbor.get_cost() is None or new_cost < neighbor.get_cost():
-                        # Mise à jour du coût de déplacement, du noeud parent et que l'heuristique
-                        neighbor.g = new_cost
-                        neighbor.parent_node = current
-                        neighbor.h = self.get_distance(neighbor, goal)
-                        # Ajout de ce voisin dans la file de priorité
+
+        # Initialisation du noeud courant :
+        u = start
+        while u != goal and not prio_queue.is_empty():
+            u = prio_queue.pull()
+            for neighbor in self.get_neighbors(u):
+                new_cost = u.get_cost() + self.weight(u, neighbor)
+                if neighbor.get_cost() is None or new_cost < neighbor.get_cost():
+                    # Mise à jour du coût de déplacement, du noeud parent et que l'heuristique
+                    neighbor.g = new_cost
+                    neighbor.parent_node = u
+                    neighbor.h = self.get_manhattan_distance(neighbor, goal)
+                    # Ajout de ce voisin dans la file de priorité
+                    if not prio_queue.in_queue(neighbor):
                         prio_queue.add(neighbor)
+
+        if u == goal:
+            return Node.parse_nodes_by_id(self.build_path_to(start, u))
+        else:
+            return []

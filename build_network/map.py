@@ -48,6 +48,9 @@ class Map:
         # print(event.ydata)
         self.db.set("INSERT INTO stations (name, localisation_x, localisation_y) VALUES ('test', " + str(floor(x)) + "," + str(floor(y)) + ");")
 
+    def astarverif(self, a, b):
+        return nx.astar_path(self.graph, a, b)
+
     def display_interactive_map(self) -> None:
         """
         Affiche la carte de la ville sur laquelle il est possible de positionner des stations.

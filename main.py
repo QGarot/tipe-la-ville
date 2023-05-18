@@ -1,5 +1,6 @@
 from database.database import Database
 from build_network.map import Map
+from pathfinder.road_network import RoadNetwork
 
 
 db = Database("localhost", "root", "", "tipe_ville")
@@ -21,3 +22,14 @@ city.set_adjacency_matrix([
 ])
 
 city.display_graph()
+network = RoadNetwork(city.get_stations(), city.get_adjacency_matrix())
+
+
+def print_matrix(m):
+    for line in m:
+        print(line)
+
+
+print(network.pathfinder(2, 6))
+print(city.astarverif(2, 6))
+
