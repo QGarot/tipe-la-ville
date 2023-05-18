@@ -4,7 +4,7 @@ from pathfinder.road_network import RoadNetwork
 
 
 db = Database("localhost", "root", "", "tipe_ville")
-city = Map("build_network/img/map2.png", db)
+city = Map("build_network/img/map3.png", db)
 # Permet de définir les stations (les noeuds)
 # city.display_interactive_map()
 city.display_map_with_stations()
@@ -30,6 +30,4 @@ def print_matrix(m):
         print(line)
 
 
-print(network.pathfinder(2, 6))
-print(city.astarverif(2, 6))
-
+print_matrix(network.get_network())

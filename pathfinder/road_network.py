@@ -5,7 +5,7 @@ from typing import Self
 class Node:
     """
     Classe permettant de représenter un noeud d'un graphe.
-    Dans le cadre de l'étude de l'algorithme A*, un noeud possèdera différentes propriétés (toutes initialisées à 0)
+    Dans le cadre de l'étude de l'algorithme A*, un noeud possèdera différentes propriétés (toutes initialisées à None)
     telles que :
         - le coût de déplacement
         - l'heuristique
@@ -35,14 +35,6 @@ class Node:
             return n1
         else:
             return n2
-
-    @classmethod
-    def parse_nodes_by_id(cls, nodes: list[Self]):
-        """
-        :param nodes:
-        :return: Retourne la liste des identifiants de chaque noeud composant la liste 'nodes' entrée en paramètre
-        """
-        return [node.get_id() for node in nodes]
 
     def get_id(self) -> int:
         """
@@ -116,7 +108,7 @@ class PriorityQueue:
         """
         return len(self.content) == 0
 
-    def in_queue(self, x: Node) -> bool:
+    def has(self, x: Node) -> bool:
         """
         Retourne True si l'élément x est déjà dans la file de priorité, False sinon
         :param x:
@@ -129,13 +121,13 @@ class RoadNetwork:
     """
     Classe représentant un réseau routier, ie un ensemble de routes.
     Un objet de type 'réseau routier' peut être instancié grâce à :
-        - un ensemble de points, appelés noeuds (possèdant donc des coordonnées) correspondant à des intersections de routes, des
-        stations, etc.
+        - un ensemble de points, appelés noeuds (possèdant donc des coordonnées) correspondant ici à des stations.
         - une matrice d'adjacence permettant d'établir les liaisons entre les différents noeuds.
     """
     def __init__(self, nodes: list[Node], adjacency_matrix: list[list[float]]):
         self.nodes = nodes
         self.matrix = adjacency_matrix
+
         self.network = None
         self.set_network_matrix()
 
@@ -143,13 +135,21 @@ class RoadNetwork:
     def get_distance(n1: Node, n2: Node):
         dx = n2.get_x() - n1.get_x()
         dy = n2.get_y() - n1.get_y()
-        return sqrt(dx ** 2 + dy ** 2)
+        return sqrt(dx ** 2 + dy ** 2) * 50 / 8
 
     @staticmethod
     def get_manhattan_distance(n1: Node, n2: Node):
         dx = abs(n2.get_x() - n1.get_x())
         dy = abs(n2.get_y() - n1.get_y())
         return dx + dy
+
+    @classmethod
+    def parse_nodes_by_id(cls, nodes: list[Node]) -> list[int]:
+        """
+        :param nodes:
+        :return: Retourne la liste des identifiants de chaque noeud composant la liste 'nodes' entrée en paramètre
+        """
+        return [node.get_id() for node in nodes]
 
     def get_adjacency_matrix(self) -> list[list[float]]:
         """
@@ -284,10 +284,10 @@ class RoadNetwork:
                     neighbor.parent_node = u
                     neighbor.h = self.get_manhattan_distance(neighbor, goal)
                     # Ajout de ce voisin dans la file de priorité
-                    if not prio_queue.in_queue(neighbor):
+                    if not prio_queue.has(neighbor):
                         prio_queue.add(neighbor)
 
         if u == goal:
-            return Node.parse_nodes_by_id(self.build_path_to(start, u))
+            return RoadNetwork.parse_nodes_by_id(self.build_path_to(start, u))
         else:
             return []

@@ -57,8 +57,8 @@ class Map:
         :return:
         """
         self.fig.canvas.mpl_connect('button_press_event', self.place_station)
-        plt.axis([0, 1420, 0, 829])
-        plt.imshow(self.image, extent=(0, 1420, 0, 829))
+        plt.axis([0, 1014, 0, 830])
+        plt.imshow(self.image, extent=(0, 1014, 0, 830))
         plt.show()
 
     def display_map_with_stations(self) -> None:
@@ -73,8 +73,8 @@ class Map:
                      horizontalalignment="center",
                      bbox=dict(boxstyle="round", color="#FF4633", alpha=0.6))
 
-        plt.axis([0, 1420, 0, 829])
-        plt.imshow(self.image, extent=(0, 1420, 0, 829))
+        plt.axis([0, 1014, 0, 830])
+        plt.imshow(self.image, extent=(0, 1014, 0, 830))
         plt.show()
 
     def get_stations(self) -> list[Station]:
