@@ -27,10 +27,12 @@ CREATE TABLE stations (
 -- Déchargement des données de la table `stations`
 --
 
-INSERT INTO stations (`id`, `name`, `localisaion_x`, `localisation_y`, `capacity`, `current_people`) VALUES
-(1, 'A', 4, 2, 10, 0),
-(2, 'B', 5, 0.5, 10, 0),
-(3, 'C', -2, -3.4, 10, 0),
-(4, 'D', -3.8, -1.3, 10, 0),
-(5, 'E', -1.5, 2.4, 10, 0),
-(6, 'F', 2.2, -2.7, 10, 0);
+INSERT INTO `stations` (`id`, `name`, `localisation_x`, `localisation_y`, `capacity`, `current_people`) VALUES
+(1, 'test', 658, 303, 25, 0),
+(2, 'test', 831, 176, 25, 0),
+(3, 'test', 848, 390, 25, 0),
+(4, 'test', 810, 521, 25, 0),
+(5, 'test', 861, 747, 25, 0),
+(6, 'test', 686, 645, 25, 0),
+(7, 'test', 668, 522, 25, 0),
+(8, 'test', 558, 375, 25, 0);
