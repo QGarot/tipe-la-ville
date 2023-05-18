@@ -20,10 +20,9 @@ On dit que $h$ est *admissible* lorsque $\forall s \in S, h(s) \le d(s, t)$.
 
 Autrement dit, $h$ est *admissible* si h ne surestime jamais le coût de la résolution.
 
-## Proposition :
+## Proposition : optimalité de l'algorithme A*, implémenté par la méthode ```pathfinder```
 Soient $s, t \in S$ et $h$ une heuristique admissible pour la recherche de $t$.
-
-L'appel de la fonction implémentant l'algorithme A* avec comme paramètres les sommets $s$ et $t$ retourne un plus court chemin de $s$ à $t$, s'il existe.
+Si l'appel de la méthode ```pathfinder``` avec comme paramètres les sommets $s$ et $t$ retourne un chemin, alors ce dernier est un plus court chemin de $s$ à $t$.
 
 #### Démonstration
 Quelques notations : pour un sommet $s$ donné, on note $g(s)$ (resp. $f(s)$ ) le coût total pour accéder à $s$ (resp. la priorité de $s$).
@@ -48,13 +47,13 @@ Tout d'abord, d'après l'hypothèse de récurrence, le sommet $a_i$ possède la 
 
 1. Si $g(a_{i+1})$ n'est pas défini ou si $g(a_{i+1})$ est défini et que $g(a_i) + w(a_i, a_{i+1}) \lt g(a_{i+1})$ ;
 
-Alors l'algorithme attribue à $g(a_{i+1})$ la valeur $g(a_i) + w(a_i, a_{i+1})$, donc à ce stade, $g(a_{i+1}) = g(a_i) + w(a_i, a_{i+1})$. Or, par hypothèse de récurrence, $g(a_i) = d(s, a_i)$. On déduit donc que $g(a_{i+1}) = d(s, a_i) + w(a_i, a_{i+1}) = d(s, a_{i+1})$ (à justifier...).
+Alors l'algorithme attribue à $g(a_{i+1})$ la valeur $g(a_i) + w(a_i, a_{i+1})$, donc à ce stade, $g(a_{i+1}) = g(a_i) + w(a_i, a_{i+1})$. Or, par hypothèse de récurrence, $g(a_i) = d(s, a_i)$. On déduit donc que $g(a_{i+1}) = d(s, a_i) + w(a_i, a_{i+1}) = d(s, a_{i+1})$. (En effet, si $d(s, a_i) + w(a_i, a_{i+1}) \gt d(s, a_{i+1})$, alors le chemin $s a_1 ... a_i a_{i+1}$ ne serait pas un chemin de poids minimal de $s$ à $a_{i+1}$. Il existerait donc un chemin $s ... a_{i+1}$, noté $\mathcal{L}$, tel que $w(\mathcal{L}) \lt w(s a_1 ... a_i a_{i+1})$. Notons $\mathcal{\widetilde{L}}$ le chemin $\mathcal{L} a_{i+1}a_{i+2}...t$. On aurait donc $w(\mathcal{\widetilde{L}}) = w(\mathcal{L}) + w(a_{i+1}a_{i+2}...t) \lt w(s... a_i a_{i+1}) + w(a_{i+1}a_{i+2}...t) = w(\mathcal{C})$. Or, le chemin $\mathcal{C}$ est un plus court chemin de $s$ à $t$, donc $w(\mathcal{C}) = d(s, t)$ ce qui impliquerait que $w(\mathcal{\widetilde{L}}) \lt d(s, t)$ : c'est absurde).
 
 De plus, $g(a_{i+1})$ étant maintenant défini, on peut calculer $f(a_{i+1})$ : $f(a_{i+1}) = g(a_{i+1}) + h(a_{i+1})$. Or, $h$ est admissible donc $h(a_{i+1}) \le d(a_{i+1}, t)$. On a alors que : $f(a_{i+1}) \le  d(s, a_{i+1}) + d(a_{i+1}, t) = d'$.
 
-2. Sinon, $g(a_{i+1})$ est déjà défini et que $g(a_{i+1}) \le g(a_i) + w(a_i, a_{i+1})$ ;
+2. Sinon, $g(a_{i+1})$ est déjà défini et $g(a_{i+1}) \le g(a_i) + w(a_i, a_{i+1})$ ;
 
-Alors par hypothèse de récurrence sur $g(a_i)$, on a $g(a_{i+1}) \le d(s, a_i) + w(a_i, a_{i+1})$, donc nécessairement $g(a_{i+1}) = d(s, a_i) + w(a_i, a_{i+1})$ par minimalité de $d(s, a_i)$. On établit alors que $g(a_{i+1}) = d(s, a_{i+1})$.
+Par hypothèse de récurrence sur $g(a_i)$, on a $g(a_{i+1}) \le d(s, a_i) + w(a_i, a_{i+1})$, donc nécessairement $g(a_{i+1}) = d(s, a_i) + w(a_i, a_{i+1})$ par minimalité de $d(s, a_i)$. On établit alors que $g(a_{i+1}) = d(s, a_{i+1})$.
 
 En reprenant le même raisonnement fait précédemment pour la majoration de $f(a_{i+1})$, on a : $f(a_{i+1}) \le d'$.
 
