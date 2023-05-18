@@ -66,6 +66,29 @@ class Node:
         """
         return self.h
 
+    def set_cost(self, cost: float) -> None:
+        """
+        Attribue la valeur 'cost' à 'g'
+        :param cost:
+        """
+        self.g = cost
+
+    def set_heuristic(self, heuristic: float) -> None:
+        """
+        Attribue la valeur 'heuristic' à 'h'
+        :param heuristic:
+        :return:
+        """
+        self.h = heuristic
+
+    def set_parent_node(self, node: Self) -> None:
+        """
+        Attribue un nouveau noeud parent
+        :param node:
+        :return:
+        """
+        self.parent_node = node
+
     def get_f(self) -> float:
         """
         :return: Retourne la somme du coût et de l'heuristique
@@ -266,13 +289,13 @@ class RoadNetwork:
         # Initialisation des propriétés du noeud de départ
         start = self.get_node_by_id(start_id)
         goal = self.get_node_by_id(goal_id)
-        start.g = 0
-        start.h = self.get_manhattan_distance(start, goal)
+        start.set_cost(0)
+        start.set_heuristic(self.get_distance(start, goal))
 
         # Ajout du noeud de départ à la file de priorité
         prio_queue.add(start)
 
-        # Initialisation du noeud courant :
+        # Initialisation du noeud actuel :
         u = start
         while u != goal and not prio_queue.is_empty():
             u = prio_queue.pull()
@@ -280,9 +303,9 @@ class RoadNetwork:
                 new_cost = u.get_cost() + self.weight(u, neighbor)
                 if neighbor.get_cost() is None or new_cost < neighbor.get_cost():
                     # Mise à jour du coût de déplacement, du noeud parent et que l'heuristique
-                    neighbor.g = new_cost
-                    neighbor.parent_node = u
-                    neighbor.h = self.get_manhattan_distance(neighbor, goal)
+                    neighbor.set_cost(new_cost)
+                    neighbor.set_parent_node(u)
+                    neighbor.set_heuristic(self.get_distance(neighbor, goal))
                     # Ajout de ce voisin dans la file de priorité
                     if not prio_queue.has(neighbor):
                         prio_queue.add(neighbor)
