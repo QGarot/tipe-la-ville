@@ -65,10 +65,10 @@ class Node:
         return self.parent_node
 
 
-class PriorityQueue(list[Node]):
+class PriorityQueue:
     def __init__(self, get_highest_priority_element: callable):
-        super().__init__()
         self.get_highest_priority_element = get_highest_priority_element
+        self.content = []
 
     def add(self, x: Node) -> None:
         """
@@ -76,23 +76,31 @@ class PriorityQueue(list[Node]):
         :param x:
         :return:
         """
-        self.append(x)
+        self.content.append(x)
 
     def pull(self) -> Node:
         """
         :return: Retourne l'élément possédant la plus grande priorité
         """
-        highest = self[0]
-        for element in self:
+        highest = self.content[0]
+        for element in self.content:
             highest = self.get_highest_priority_element(highest, element)
-        self.remove(highest)
+        self.content.remove(highest)
         return highest
 
     def is_empty(self) -> bool:
         """
         :return: Retourne True si la file est vide, False sinon
         """
-        return len(self) == 0
+        return len(self.content) == 0
+
+    def in_queue(self, x: Node) -> bool:
+        """
+        Retourne True si l'élément x est déjà dans la file de priorité, False sinon
+        :param x:
+        :return:
+        """
+        return x in self.content
 
 
 class RoadNetwork:
