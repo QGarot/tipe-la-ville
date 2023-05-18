@@ -40,7 +40,7 @@ class Node:
     def parse_nodes_by_id(cls, nodes: list[Self]):
         """
         :param nodes:
-        :return: Retourne la liste des identifiants de chaque noeud composant la liste 'nodes' entré en paramètre
+        :return: Retourne la liste des identifiants de chaque noeud composant la liste 'nodes' entrée en paramètre
         """
         return [node.get_id() for node in nodes]
 
@@ -233,13 +233,25 @@ class RoadNetwork:
             res.append(final)
             return res
 
-    def weight(self, n1: Node, n2: Node):
+    def weight(self, n1: Node, n2: Node) -> float:
         """
         :param n1:
         :param n2:
         :return: Retourne le poids de l'arête partant de n1 jusqu'à n2.
         """
         return self.get_network()[n1.get_id() - 1][n2.get_id() - 1]
+
+    def path_weight(self, nodes: list[Node]) -> float:
+        """
+        Calcule le poids d'un chemin, défini comme la somme des poids des arêtes qui le composent.
+        :param nodes:
+        :return: Retourne la valeur du poids du chemin désigné par la liste 'nodes' entrée en paramètre.
+        """
+        n = len(nodes)
+        res = 0
+        for k in range(n - 1):
+            res = res + self.weight(nodes[k], nodes[k + 1])
+        return res
 
     def pathfinder(self, start_id: int, goal_id: int) -> list[int]:
         """
