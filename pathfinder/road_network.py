@@ -36,6 +36,22 @@ class Node:
         else:
             return n2
 
+    @classmethod
+    def get_distance(cls, n1: Self, n2: Self) -> float:
+        dx = n2.get_x() - n1.get_x()
+        dy = n2.get_y() - n1.get_y()
+        return sqrt(dx ** 2 + dy ** 2) * 50 / 8
+
+    @classmethod
+    def get_manhattan_distance(cls, n1: Self, n2: Self) -> float:
+        dx = abs(n2.get_x() - n1.get_x())
+        dy = abs(n2.get_y() - n1.get_y())
+        return dx + dy
+
+    @classmethod
+    def heuristic_null(cls, n1: Self, n2: Self) -> float:
+        return 0
+
     def get_id(self) -> int:
         """
         :return: Retourne l'identifiant de ce noeud
@@ -66,14 +82,14 @@ class Node:
         """
         return self.h
 
-    def set_cost(self, cost: float) -> None:
+    def set_cost(self, cost: float | None) -> None:
         """
         Attribue la valeur 'cost' à 'g'
         :param cost:
         """
         self.g = cost
 
-    def set_heuristic(self, heuristic: float) -> None:
+    def set_heuristic(self, heuristic: float | None) -> None:
         """
         Attribue la valeur 'heuristic' à 'h'
         :param heuristic:
@@ -81,7 +97,7 @@ class Node:
         """
         self.h = heuristic
 
-    def set_parent_node(self, node: Self) -> None:
+    def set_parent_node(self, node: Self | None) -> None:
         """
         Attribue un nouveau noeud parent
         :param node:
@@ -154,18 +170,6 @@ class RoadNetwork:
         self.network = None
         self.set_network_matrix()
 
-    @staticmethod
-    def get_distance(n1: Node, n2: Node):
-        dx = n2.get_x() - n1.get_x()
-        dy = n2.get_y() - n1.get_y()
-        return sqrt(dx ** 2 + dy ** 2) * 50 / 8
-
-    @staticmethod
-    def get_manhattan_distance(n1: Node, n2: Node):
-        dx = abs(n2.get_x() - n1.get_x())
-        dy = abs(n2.get_y() - n1.get_y())
-        return dx + dy
-
     @classmethod
     def parse_nodes_by_id(cls, nodes: list[Node]) -> list[int]:
         """
@@ -213,7 +217,7 @@ class RoadNetwork:
                 if self.get_adjacency_matrix()[i][j] == 1:
                     node_i = self.get_node_by_id(i + 1)
                     node_j = self.get_node_by_id(j + 1)
-                    distance = self.get_distance(node_i, node_j)
+                    distance = Node.get_distance(node_i, node_j)
                     line.append(distance)
                 else:
                     if i == j:
@@ -276,13 +280,29 @@ class RoadNetwork:
             res = res + self.weight(nodes[k], nodes[k + 1])
         return res
 
-    def pathfinder(self, start_id: int, goal_id: int) -> list[int]:
+    def reset_nodes_properties(self) -> None:
         """
-        Première version du pathfinder.
+        Ré-initialise les propriétés de chaque noeud. Cette methode doit être appelée avant la recherche d'un plus
+        court chemin, pour s'assurer de bien initialiser correctement toutes les propriétés de chaque noeud.
+        :return:
+        """
+        for node in self.get_nodes():
+            node.set_parent_node(None)
+            node.set_cost(None)
+            node.set_heuristic(None)
+
+    def pathfinder(self, start_id: int, goal_id: int, heuristic: callable) -> tuple[list[int], float]:
+        """
+        Implémentation de l'algorithme A*.
+        :param heuristic:
         :param start_id:
         :param goal_id:
-        :return: le chemin le plus court allant du noeud ayant pour id start_id au noeud ayant pour id goal_id
+        :return: un couple de la forme :
+        (le chemin le plus court allant du noeud ayant pour id 'start_id' au noeud ayant pour id 'goal_id', tours de boucle)
         """
+        # Element d'analyse
+        t = 0
+
         # Création de la file de priorité
         prio_queue = PriorityQueue(Node.get_highest_heuristic_node)
 
@@ -290,7 +310,7 @@ class RoadNetwork:
         start = self.get_node_by_id(start_id)
         goal = self.get_node_by_id(goal_id)
         start.set_cost(0)
-        start.set_heuristic(self.get_distance(start, goal))
+        start.set_heuristic(heuristic(start, goal))
 
         # Ajout du noeud de départ à la file de priorité
         prio_queue.add(start)
@@ -305,12 +325,13 @@ class RoadNetwork:
                     # Mise à jour du coût de déplacement, du noeud parent et que l'heuristique
                     neighbor.set_cost(new_cost)
                     neighbor.set_parent_node(u)
-                    neighbor.set_heuristic(self.get_distance(neighbor, goal))
+                    neighbor.set_heuristic(heuristic(neighbor, goal))
                     # Ajout de ce voisin dans la file de priorité
                     if not prio_queue.has(neighbor):
                         prio_queue.add(neighbor)
+            t = t + 1
 
         if u == goal:
-            return RoadNetwork.parse_nodes_by_id(self.build_path_to(start, u))
+            return RoadNetwork.parse_nodes_by_id(self.build_path_to(start, u)), t
         else:
-            return []
+            return [], t
