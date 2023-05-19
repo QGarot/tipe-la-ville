@@ -51,4 +51,4 @@ def compare(start_node_id: int, final_node_id: int, heuristics: list[callable], 
     plt.show()
 
 
-compare(1, 5, [Node.get_manhattan_distance, Node.get_distance, Node.heuristic_null], ["blue", "green", "orange"])
+compare(1, 5, [Node.get_manhattan_distance, Node.get_distance, Node.heuristic_null], ["#34ace0", "#33d9b2", "#ffb142"])
