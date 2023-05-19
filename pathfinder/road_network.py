@@ -1,5 +1,6 @@
 from math import sqrt
 from typing import Self
+import matplotlib.pyplot as plt
 
 
 class Point:
@@ -336,3 +337,29 @@ class RoadNetwork:
             return self.build_path_to(start, u), t
         else:
             return [], t
+
+    def compare(self, start_node_id: int, final_node_id: int, heuristics: list[callable], colors: list[str]) -> None:
+        """
+        Affiche un graphique permettant d'analyser l'efficacité de la méthode pathfinder en fonction des heuristiques
+        choisies.
+        :param start_node_id:
+        :param final_node_id:
+        :param heuristics:
+        :param colors:
+        """
+        fig, ax = plt.subplots()
+        heuristic_names = []
+        loops_set = []
+
+        for heuristic in heuristics:
+            path_info = self.pathfinder(start_node_id, final_node_id, heuristic)
+            loops_number = path_info[1]
+            # print(path_info[0])
+            self.reset_nodes_properties()
+            heuristic_names.append(heuristic.__name__)
+            loops_set.append(loops_number)
+
+        ax.bar(heuristic_names, loops_set, color=colors)
+        ax.set_ylabel("Nombre de tours de boucle")
+        ax.set_title("Efficacité du pathfinder selon l'heuristique choisie")
+        plt.show()
