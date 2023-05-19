@@ -2,7 +2,35 @@ from math import sqrt
 from typing import Self
 
 
-class Node:
+class Point:
+    def __init__(self, x: float, y: float):
+        self.x = x
+        self.y = y
+
+    def get_x(self) -> float:
+        return self.x
+
+    def get_y(self) -> float:
+        return self.y
+
+    @classmethod
+    def get_euclidian_distance(cls, p1: Self, p2: Self) -> float:
+        dx = p2.get_x() - p1.get_x()
+        dy = p2.get_y() - p1.get_y()
+        return sqrt(dx ** 2 + dy ** 2) * 50 / 8
+
+    @classmethod
+    def get_manhattan_distance(cls, n1: Self, n2: Self) -> float:
+        dx = abs(n2.get_x() - n1.get_x())
+        dy = abs(n2.get_y() - n1.get_y())
+        return (dx + dy) * 50 / 8
+
+    @classmethod
+    def heuristic_null(cls, n1: Self, n2: Self) -> float:
+        return 0
+
+
+class Node(Point):
     """
     Classe permettant de représenter un noeud d'un graphe.
     Dans le cadre de l'étude de l'algorithme A*, un noeud possèdera différentes propriétés (toutes initialisées à None)
@@ -13,6 +41,7 @@ class Node:
     """
     def __init__(self, id: int, x: int, y: int):
         # Identifiant
+        super().__init__(x, y)
         self.id = id
         # Coordonnées
         self.x = x
@@ -36,39 +65,11 @@ class Node:
         else:
             return n2
 
-    @classmethod
-    def get_distance(cls, n1: Self, n2: Self) -> float:
-        dx = n2.get_x() - n1.get_x()
-        dy = n2.get_y() - n1.get_y()
-        return sqrt(dx ** 2 + dy ** 2) * 50 / 8
-
-    @classmethod
-    def get_manhattan_distance(cls, n1: Self, n2: Self) -> float:
-        dx = abs(n2.get_x() - n1.get_x())
-        dy = abs(n2.get_y() - n1.get_y())
-        return dx + dy
-
-    @classmethod
-    def heuristic_null(cls, n1: Self, n2: Self) -> float:
-        return 0
-
     def get_id(self) -> int:
         """
         :return: Retourne l'identifiant de ce noeud
         """
         return self.id
-
-    def get_x(self) -> int:
-        """
-        :return: Retourne la cordonnées x (abscisse) de ce noeud
-        """
-        return self.x
-
-    def get_y(self) -> int:
-        """
-        :return: Retourne la cordonnées y (ordonnée) de ce noeud
-        """
-        return self.y
 
     def get_cost(self) -> int | None:
         """
@@ -217,7 +218,7 @@ class RoadNetwork:
                 if self.get_adjacency_matrix()[i][j] == 1:
                     node_i = self.get_node_by_id(i + 1)
                     node_j = self.get_node_by_id(j + 1)
-                    distance = Node.get_distance(node_i, node_j)
+                    distance = Point.get_euclidian_distance(node_i, node_j)
                     line.append(distance)
                 else:
                     if i == j:
@@ -291,7 +292,7 @@ class RoadNetwork:
             node.set_cost(None)
             node.set_heuristic(None)
 
-    def pathfinder(self, start_id: int, goal_id: int, heuristic: callable) -> tuple[list[int], float]:
+    def pathfinder(self, start_id: int, goal_id: int, heuristic: callable) -> tuple[list[Node], float]:
         """
         Implémentation de l'algorithme A*.
         :param heuristic:
@@ -332,6 +333,6 @@ class RoadNetwork:
             t = t + 1
 
         if u == goal:
-            return RoadNetwork.parse_nodes_by_id(self.build_path_to(start, u)), t
+            return self.build_path_to(start, u), t
         else:
             return [], t

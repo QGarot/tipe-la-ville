@@ -1,7 +1,8 @@
 from database.database import Database
 from build_network.map import Map
-from pathfinder.road_network import RoadNetwork, Node
+from pathfinder.road_network import RoadNetwork, Node, Point
 from matplotlib import pyplot as plt
+from route_manager import RouteRequest
 
 
 db = Database("localhost", "root", "", "tipe_ville")
@@ -16,7 +17,7 @@ city.set_adjacency_matrix([
     [1, 0, 1, 0, 0, 0, 0, 0],
     [1, 1, 0, 1, 1, 0, 0, 0],
     [0, 0, 1, 0, 1, 0, 1, 1],
-    [0, 0, 0, 1, 0, 1, 1, 0],
+    [0, 0, 1, 1, 0, 1, 1, 0],
     [0, 0, 0, 0, 1, 0, 1, 0],
     [0, 0, 0, 1, 1, 1, 0, 1],
     [1, 0, 0, 1, 0, 0, 1, 0]
@@ -40,7 +41,9 @@ def compare(start_node_id: int, final_node_id: int, heuristics: list[callable], 
     loops_set = []
 
     for heuristic in heuristics:
-        loops_number = network.pathfinder(start_node_id, final_node_id, heuristic)[1]
+        path_info = network.pathfinder(start_node_id, final_node_id, heuristic)
+        loops_number = path_info[1]
+        print(path_info[0])
         network.reset_nodes_properties()
         heuristic_names.append(heuristic.__name__)
         loops_set.append(loops_number)
@@ -51,4 +54,7 @@ def compare(start_node_id: int, final_node_id: int, heuristics: list[callable], 
     plt.show()
 
 
-compare(1, 5, [Node.get_manhattan_distance, Node.get_distance, Node.heuristic_null], ["#34ace0", "#33d9b2", "#ffb142"])
+compare(1, 6, [Point.get_manhattan_distance, Point.get_euclidian_distance, Point.heuristic_null], ["#34ace0", "#33d9b2", "#ffb142"])
+
+request = RouteRequest(network, (596, 784), (595, 306))
+print(request.get_route_data())
