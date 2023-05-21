@@ -20,7 +20,9 @@ CREATE TABLE stations (
   localisation_x FLOAT,
   localisation_y FLOAT,
   capacity INT DEFAULT 25,
-  current_people INT NOT NULL DEFAULT 0
+  current_people INT NOT NULL DEFAULT 0,
+  current_gondola INT NOT NULL DEFAULT 0,
+  is_main tinyint(1) NOT NULL
 );
 
 --
