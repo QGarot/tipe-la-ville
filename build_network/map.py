@@ -20,6 +20,14 @@ class Station(Node):
         self.name = name
         self.capacity = capacity
         self.current_people = current_people
+        self.current_gondola = 0
+        self.is_main_station = False
+
+    def add_gondola(self) -> None:
+        self.current_gondola = self.current_gondola + 1
+
+    def remove_gondola(self) -> None:
+        self.current_gondola = self.current_gondola - 1
 
 
 class Map:
@@ -80,14 +88,27 @@ class Map:
     def get_stations(self) -> list[Station]:
         """
         :return: L'ensemble des stations de la ville.
+        # TODO: vérifier si ça concorde bien avec la BDD!
         """
         stations = self.db.get("SELECT * FROM stations")
+        stations_object = []
         for i in range(len(stations)):
             station = stations[i]
             id, name, x, y = station[0], station[1], station[2], station[3]
-            stations[i] = Station(id, name, x, y, station[4], station[5])
+            stations_object.append(Station(id, name, x, y, station[4], station[5]))
 
-        return stations
+        return stations_object
+
+    def get_station_by_id(self, id: int) -> Station | None:
+        """
+        Retourne la station possédant l'id en paramètre.
+        :param id:
+        :return:
+        """
+        for station in self.get_stations():
+            if station.get_id() == id:
+                return station
+        return None
 
     def set_adjacency_matrix(self, matrix: list[list]) -> None:
         """

@@ -28,5 +28,6 @@ network = RoadNetwork(city.get_stations(), city.get_adjacency_matrix())
 
 network.compare(1, 6, [Point.get_manhattan_distance, Point.get_euclidian_distance, Point.heuristic_null], ["#34ace0", "#33d9b2", "#ffb142"])
 
-request = RouteRequest(network, (664, 263), (511, 586))
-print(request.get_route_data())
+request = RouteRequest((668, 291), (374, 589))
+print(request.get_route_data_str(network))
+print(network.path_weight([network.get_node_by_id(2), network.get_node_by_id(3), network.get_node_by_id(4), network.get_node_by_id(7)]))

@@ -1,4 +1,4 @@
-from math import sqrt
+from math import sqrt, ceil
 from typing import Self
 import matplotlib.pyplot as plt
 
@@ -261,6 +261,14 @@ class RoadNetwork:
             res = self.build_path_to(start, final.get_parent_node())
             res.append(final)
             return res
+
+    def time(self, path: list[Node]) -> int:
+        """
+        :param path:
+        :return: la durée d'un trajet
+        """
+        distance = self.path_weight(path)
+        return ceil(distance * 60 / 50000)
 
     def weight(self, n1: Node, n2: Node) -> float:
         """
