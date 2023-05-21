@@ -31,7 +31,7 @@ Soit $\mathcal{C_A*} = s_0 ... s_m$ le chemin retourné par l'algorithme A*, où
 
 On suppose maintenant par l'absurde qu'il existe un chemin $\mathcal{C} = a_0 ... a_n$, où $a_0 = s$ et $a_n = t$, de poids minimal $d'$. Ainsi : $d' \lt d$.
 
-Montrons par récurrence la propriété suivante : $\forall i \in [\mid0,n\mid], g(a_i) = d(s, s_i)$ et  $f(a_i) \le d'$.
+Montrons par récurrence la propriété suivante : $\forall i \in [\mid0,n\mid], g(a_i) = d(s, a_i)$ et  $f(a_i) \le d'$.
 
 - Initialisation ($i = 0$) :
 
