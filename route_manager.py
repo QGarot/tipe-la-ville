@@ -1,7 +1,6 @@
 from pathfinder.road_network import RoadNetwork, Point
 from math import ceil
 from build_network.map import Station, Map
-from database.database import Database
 
 
 class Queue:
@@ -91,7 +90,7 @@ class GondolaManager:
     def handle_request(self, request_data: tuple[list[int], float, float], network: RoadNetwork) -> None:
         """
         TODO: terminer cette fonction...
-        V1 !!
+        V2 !!
         La demande d'un trajet correspond à un événement. L'envoi d'une cabine vers la station de départ constitue la
         réponse de cet événement. Cette dernière ne se fait pas au hasard, et doit nécessiter un temps d'attente
         minimal.
@@ -114,30 +113,35 @@ class GondolaManager:
         :return:
         """
         db = self.city_map.db
-        x = {}
+
         # On détermine le noeud de départ du trajet planifié
         route_start_node_id = request_data[0][0]
 
-        # 1. On regarde s'il est possible d'y envoyer une cabine venant de la gare centrale
-        main_station_id = db.get("SELECT id FROM stations WHERE is_main = 1")
-        main_station = self.city_map.get_station_by_id(main_station_id)
-        central_to_start = None
-        if main_station.current_gondola > 0:
-            central_to_start = network.pathfinder(main_station_id, route_start_node_id, Point.get_euclidian_distance)[0]
-            t1 = network.time(central_to_start)
-        else:
-            t1 = float("inf")
-        x[t1] = central_to_start
+        t = float("inf")
+        path = None
 
-        # 2. On détermine les stations dans lequelles des cabines sont en attente pour pouvoir déterminer depuis laquelle on a un temps d'attente minimal
-        t2 = float("inf")
-        stations_waiting_gondola = db.get("SELECT id FROM stations WHERE current_gondola > 0")
-        station_to_start = None
-        for station in stations_waiting_gondola:
-            station_id = station[0]
-            station_to_start = network.pathfinder(station_id, route_start_node_id, Point.get_euclidian_distance)[0]
-            if network.time(station_to_start) < t2:
-                t2 = network.time(station_to_start)
-        x[t2] = station_to_start
+        # 1. On calcule la durée d'attente pour que la cabine arrive jusqu'à l'usager en partant de la gare centrale
+        req = db.get("SELECT id FROM stations WHERE is_main = 1 AND current_gondola > 0")
+        if len(req) != 0:
+            main_station_id = req[0][0]
+            path = network.pathfinder(main_station_id, route_start_node_id, Point.get_euclidian_distance)[0]
+            t = network.time(path)
 
-        req = db.get("SELECT min(time) FROM scheduled_routes GROUP BY destination_id WHERE destination_id = " + str(route_start_node_id) + ";")
+        # 2. On détermine les stations dans lequelles des cabines sont en attente
+        #    On regarde si, depuis l'une d'entre elle, la cabine peut acceder à notre station en un temps plus petit
+        req = db.get("SELECT id FROM stations WHERE current_gondola > 0")
+        if len(req) != 0:
+            for station in req:
+                station_id = station[0]
+                temp_path = network.pathfinder(station_id, route_start_node_id, Point.get_euclidian_distance)[0]
+                temp_t = network.time(temp_path)
+                if temp_t < t:
+                    t = temp_t
+                    path = temp_path
+
+        # 3. On détermine les trajets planifiés qui ont pour station d'arrivée notre station
+        req = db.get("SELECT min(time) FROM scheduled_routes GROUP BY destination_id WHERE destination_id = " + str(
+            route_start_node_id) + ";")
+
+        # Appel de la cabine...
+        self.move_gondola(path[0].get_id(), path[-1].get_id())
