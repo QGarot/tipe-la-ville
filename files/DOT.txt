@@ -1,0 +1,13 @@
+[Octobre-Décembre 2022] - Familiarisation avec la notion de graphes de flot pour l'étude d'un réseau routier. Recherche de solutions pour limiter les embouteillages au sein d'une ville.
+
+[Début Janvier 2023] - Découverte du projet Supraways dans le journal télévisé. Toujours dans l'optique de trouver des solutions pour améliorer la fluidité du trafic en ville, recherches sur le fonctionnement des moyens de transport appartenant
+à la catégorie "Personal Rapid Transit" (PRT).
+
+[Février 2023] - Documentation de la bilbiothèque Python NetworkX qui permet d'afficher des graphes. Recherche de bibliothèque
+Python permettant de mettre en relation un programme et une base de données.
+
+[Mars 2023] - Appréhension d'un algorithme de recherche de plus court chemin dans un graphe (autre que l'algorithme de Dijsktra) : l'algorithme A*. Réalisation d'une première implémentation de l'algorithme A* à l'aide d'une programmation orientée objet.
+
+[Avril - Mi Mai 2023] - Réalisation de l'algorithme permettant de déterminer le trajet optimal que devra suivre une cabine pour transporter un usager vers sa destination. Rédaction d'une démonstration de l'optimalité du chemin retourné par l'algorithme A* pour prouver la validité du programme. Etude sur le choix de l'heuristique.
+
+[Fin Mai] - Réalisation d'un algorithme permettant de répartir les cabines. Après discussion avec le professeur encadrant, la comparaison du système de transport Supraways avec un système de transport actuel s'avère complexe. / semble être une étude complexe.
