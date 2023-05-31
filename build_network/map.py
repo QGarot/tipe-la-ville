@@ -29,6 +29,9 @@ class Station(Node):
     def remove_gondola(self) -> None:
         self.current_gondola = self.current_gondola - 1
 
+    def get_current_number_of_gondola(self):
+        return self.current_gondola
+
 
 class Map:
     """
@@ -55,9 +58,6 @@ class Map:
         # print(event.xdata)
         # print(event.ydata)
         self.db.set("INSERT INTO stations (name, localisation_x, localisation_y) VALUES ('test', " + str(floor(x)) + "," + str(floor(y)) + ");")
-
-    def astarverif(self, a, b):
-        return nx.astar_path(self.graph, a, b)
 
     def display_interactive_map(self) -> None:
         """

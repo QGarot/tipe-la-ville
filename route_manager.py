@@ -1,5 +1,4 @@
 import time
-
 from pathfinder.road_network import RoadNetwork, Point
 from math import ceil
 from build_network.map import Station, Map
@@ -40,6 +39,8 @@ class RouteRequest:
 
     def get_route_data_str(self, network: RoadNetwork) -> str:
         data = self.get_route_data(network)
+        # print("Chemin : " + str(data[0]))
+        # print("Temps de trajet en cabine : ~" + str(ceil(data[2])) + "min")
         return "Vous allez passer par les stations " + str(data[0]) + ". Le temps de votre trajet en cabine est estimé à environ " + str(ceil(data[2])) + " min, pour une distance de " + str(ceil(data[1])) + " mètres."
 
     def get_route_data(self, network: RoadNetwork) -> tuple[list[int], float, float]:
@@ -64,10 +65,8 @@ class RouteRequest:
 
         # Calcul du plus court chemin pour aller de la station de départ jusqu'à la station d'arrivée
         path = network.pathfinder(start_station.get_id(), final_station.get_id(), Point.get_euclidian_distance)[0]
-        total_distance = network.path_weight(path)
-        time = network.time(path)
 
-        return network.parse_nodes_by_id(path), total_distance, time
+        return network.parse_nodes_by_id(path), network.path_weight(path), network.time(path)
 
 
 class GondolaManager:
@@ -80,33 +79,24 @@ class GondolaManager:
         self.city_map = city_map
 
     def move_gondola(self, start_station_id: int, destination_station_id: int) -> None:
-        db = self.city_map.db
-
-        start_station = self.city_map.get_station_by_id(start_station_id)
-        start_station.remove_gondola()
-        db.set("UPDATE stations WHERE id = " + str(start_station_id) + " SET current_gondola = ...") # TODO: complete req
-
-        destination_station = self.city_map.get_station_by_id(destination_station_id)
-        destination_station.add_gondola()
+        pass
 
     def handle_request(self, request_data: tuple[list[int], float, float], network: RoadNetwork) -> None:
         """
-        TODO: terminer cette fonction...
-        V2 !!
+        V3
         La demande d'un trajet correspond à un événement. L'envoi d'une cabine vers la station de départ constitue la
         réponse de cet événement. Cette dernière ne se fait pas au hasard, et doit nécessiter un temps d'attente
         minimal pour l'usager.
 
-        Le programme calcule 3 possibilités, et devra choisir celle qui nécessite le moins de temps d'attente :
-        - déplacement d'une cabine de la gare centrale vers la station dans laquelle sera l'usager
-        - repérage des stations dans lesquelles il y a des cabines "vides", c'est à dire non utilisées.
-          Parmi ces stations, on choisit celle qui est la plus proche de celle où l'usager sera, et on y "extrait" une
-          cabine non utilisée.
-        - si parmi tous les trajets planifiés, il y en a au moins un qui a pour destination la station dans laquelle
-          sera l'usager, alors on l'attend.
+        Le programme calcule 2 possibilités, et devra choisir celle qui nécessite le moins de temps d'attente :
+        - On détermine l'ensemble des trajets en cours ayant pour destination la station de départ.
+        Pour chacun d'entre eux, on détermine le temps de trajet restant, pour ensuite déterminer le plus petit.
+        - On détermine l'ensemble des stations dans lesquelles il y a au moins une cabine non utilisée. On regarde
+        si depuis l'une d'entre elles une cabine peut accéder à la station de départ en un temps inférieur.
+        Repérage des stations dans lesquelles il y a des cabines "vides", c'est à dire non utilisées.
 
         Pour la réponse, il faut connaître :
-        - les données de la demande (notamment la station de départ)
+        - les données de la demande (pour connaître la station de départ)
         - le réseau, pour pouvoir déplacer une cabine vers la station de départ (à l'aide du graphe donc...)
         - la base de donnée, pour pouvoir effectuer les meilleurs choix en fonction de l'état actuel du réseau de
         transport.
@@ -122,16 +112,22 @@ class GondolaManager:
         t = float("inf")
         path = None
 
-        # 1. BOF... On calcule la durée d'attente pour que la cabine arrive jusqu'à l'usager en partant de la gare centrale
-        req = db.get("SELECT id FROM stations WHERE is_main = 1 AND current_gondola > 0")
+        # 1. On détermine les trajets planifiés qui ont pour station d'arrivée la station souhaitée.
+        #    MAJ de t : t <- minimum des temps restants de chacun de trajets
+        # TODO: mettre à jour la BDD si nécessaire!
+        req = db.get("SELECT min(arrival) FROM scheduled_routes WHERE destination_id = " + str(route_start_node_id) + ";")
         if len(req) != 0:
-            main_station_id = req[0][0]
-            path = network.pathfinder(main_station_id, route_start_node_id, Point.get_euclidian_distance)[0]
-            t = network.time(path)
+            for scheduled_route in req:
+                arrival = scheduled_route[0]  # date d'arrivée
+                current_time = time.time()
+                temp_t = ceil((arrival - current_time) / 60)
+                if temp_t < t:
+                    t = temp_t
+                    path = None  # Le chemin est en cours... inutile de le renseigner à nouveau
 
         # 2. On détermine les stations dans lequelles des cabines sont en attente
         #    On regarde si, depuis l'une d'entre elle, la cabine peut acceder à notre station en un temps plus petit
-        req = db.get("SELECT id FROM stations WHERE current_gondola > 0")
+        req = db.get("SELECT id FROM stations WHERE current_gondola > 0;")
         if len(req) != 0:
             for station in req:
                 station_id = station[0]
@@ -141,23 +137,9 @@ class GondolaManager:
                     t = temp_t
                     path = temp_path
 
-        # 3. On détermine les trajets planifiés qui ont pour station d'arrivée la station souhaitée.
-        #    On regarde la durée du trajet restant.
-
-        # TODO: mettre à jour la BDD si nécessaire!
-        req = db.get("SELECT min(arrival) FROM scheduled_routes WHERE destination_id = " + str(
-            route_start_node_id) + ";")
-        if len(req) != 0:
-            for scheduled_route in req:
-                arrival = scheduled_route[0]  # date d'arrivée
-                current_time = time.time()
-                temp_t = arrival - current_time
-                if temp_t < t:
-                    t = temp_t
-                    path = None  # Le chemin est en cours... inutile de le renseigner à nouveau
-
         # Appel de la cabine...
         if path is not None:
             self.move_gondola(path[0].get_id(), path[-1].get_id())
+            print("Une cabine vient d'être envoyée... Elle arrive dans environ " + str(t) + " minute(s).")
         else:
-            print("La cabine est en cours de route... Elle arrive dans environ " + str(t))  # Unité de temps à revoir
+            print("Une cabine arrive dans environ " + str(t) + " minute(s).")

@@ -1,13 +1,12 @@
 --
--- Structure de la table `platforms`
+-- Structure de la table `scheduled_routes`
 --
 
-CREATE TABLE platforms (
+CREATE TABLE scheduled_routes (
   id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  station_id INT,
-  current_people INT,
-  target_platform_id INT,
-  is_open BOOL
+  start_id INT NOT NULL,
+  destination_id INT NOT NULL,
+  arrival INT NOT NULL
 );
 
 --
@@ -21,8 +20,7 @@ CREATE TABLE stations (
   localisation_y FLOAT,
   capacity INT DEFAULT 25,
   current_people INT NOT NULL DEFAULT 0,
-  current_gondola INT NOT NULL DEFAULT 0,
-  is_main tinyint(1) NOT NULL
+  current_gondola INT NOT NULL DEFAULT 0
 );
 
 --
