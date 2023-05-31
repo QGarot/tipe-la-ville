@@ -41,12 +41,9 @@ class Node(Point):
         - le noeud parent
     """
     def __init__(self, id: int, x: int, y: int):
-        # Identifiant
         super().__init__(x, y)
+        # Identifiant
         self.id = id
-        # Coordonnées
-        self.x = x
-        self.y = y
         # Propriétés
         self.g = None
         self.h = None

@@ -1,7 +1,7 @@
 import time
 from pathfinder.road_network import RoadNetwork, Point
 from math import ceil
-from build_network.map import Station, Map
+from build_network.map import Map
 
 
 class Queue:
@@ -65,6 +65,7 @@ class RouteRequest:
 
         # Calcul du plus court chemin pour aller de la station de départ jusqu'à la station d'arrivée
         path = network.pathfinder(start_station.get_id(), final_station.get_id(), Point.get_euclidian_distance)[0]
+        network.reset_nodes_properties()
 
         return network.parse_nodes_by_id(path), network.path_weight(path), network.time(path)
 
@@ -74,8 +75,7 @@ class GondolaManager:
     Classe représentant le gestionnaire de cabines.
     Se charge de la répartition des cabines en fonction des demandes des usagers.
     """
-    def __init__(self, gondola: int, city_map: Map):
-        self.number_of_gondola = gondola
+    def __init__(self, city_map: Map):
         self.city_map = city_map
 
     def move_gondola(self, start_station_id: int, destination_station_id: int) -> None:
@@ -104,8 +104,9 @@ class GondolaManager:
         """
         db = self.city_map.db
 
-        # On détermine le noeud de départ du trajet planifié
+        # On détermine les stations de départ et d'arrivée du trajet planifié
         route_start_node_id = request_data[0][0]
+        route_destination_node_id = request_data[0][-1]
 
         # On definit le temps d'attente t de l'usager, ainsi que le chemin que suivra la cabine pour se rendre à la
         # station souhaitée.
@@ -114,9 +115,8 @@ class GondolaManager:
 
         # 1. On détermine les trajets planifiés qui ont pour station d'arrivée la station souhaitée.
         #    MAJ de t : t <- minimum des temps restants de chacun de trajets
-        # TODO: mettre à jour la BDD si nécessaire!
         req = db.get("SELECT min(arrival) FROM scheduled_routes WHERE destination_id = " + str(route_start_node_id) + ";")
-        if len(req) != 0:
+        if req != [(None,)]:
             for scheduled_route in req:
                 arrival = scheduled_route[0]  # date d'arrivée
                 current_time = time.time()
@@ -137,9 +137,17 @@ class GondolaManager:
                     t = temp_t
                     path = temp_path
 
-        # Appel de la cabine...
-        if path is not None:
+        # Attente de la cabine...
+        if path is not None and len(path) > 1:
             self.move_gondola(path[0].get_id(), path[-1].get_id())
             print("Une cabine vient d'être envoyée... Elle arrive dans environ " + str(t) + " minute(s).")
+        elif t == 0:
+            print("Une cabine est déjà disponible sur place !")
         else:
             print("Une cabine arrive dans environ " + str(t) + " minute(s).")
+
+        if t != float("inf"):
+            # La demande est traitée, ajout du trajet dans la BDD
+            departure = time.time() + t * 60
+            arrival = departure + request_data[2] * 60
+            db.set("INSERT INTO scheduled_routes (start_id, destination_id, arrival) VALUES (" + str(route_start_node_id) + ", " + str(route_destination_node_id) + ", " + str(arrival) + ");")
