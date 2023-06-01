@@ -20,6 +20,28 @@ On dit que $h$ est *admissible* lorsque $\forall s \in S, h(s) \le d(s, t)$.
 
 Autrement dit, $h$ est *admissible* si h ne surestime jamais le coût de la résolution.
 
+## Définition : heuristique monotone
+Soient $t \in S$ et $h$ une heuristique pour la recherche de $t$.
+
+On dit que $h$ est *monotone* lorsque $\forall (u, v) \in A, h(u) \le w(u, v) + h(v)$.
+
+## Proposition : admissibilité d'une heuristique monotone
+Soient $t \in S$ et $h$ une heuristique pour la recherche de $t$.
+
+Si $h$ est monotone, alors $h$ est admissible.
+
+#### Démonstration
+Par définition d'une heuristique admissible, montrons que : $\forall s \in S, h(s) \le d(s, t)$.
+Soit alors $s \in S$.
+
+Soit un plus court chemin de $s$ à $t$ noté $s_0...s_n$. Montrons par récurrence que : $\forall i \in [\mid0,n\mid], h(s_i) \le \sum\limits_{j=i}^{n-1} w(s_j, s_{j+1})$.
+
+- Initialisation : $h(s_n) = h(t) = 0 = \sum\limits_{j=n}^{n-1} w(s_j, s_{j+1})$.
+- Hérédité : soit $i \in [\mid1,n\mid]$ tel que $h(s_i) \le \sum\limits_{j=i}^{n-1} w(s_j, s_{j+1})$. Montrons que $h(s_{i-1}) \le \sum\limits_{j=i - 1}^{n-1} w(s_j, s_{j+1})$. Par monotonie de $h$, on a
+$h(s_{i-1}) \le w(s_{i-1}, s_i) + h(s_i)$. Or, par hypothèse de récurrence on a $h(s_i) \le \sum\limits_{j=i}^{n-1} w(s_j, s_{j+1})$, donc $w(s_{i-1}, s_i) + h(s_i) \le w(s_{i-1}, s_i) + \sum\limits_{j=i}^{n-1} w(s_j, > s_{j+1}) = \sum\limits_{j=i-1}^{n-1} w(s_j, s_{j+1})$, d'où finalement : $h(s_{i-1}) \le \sum\limits_{j=i-1}^{n-1} w(s_j, s_{j+1})$. La propriété est donc héréditaire.
+- Conclusion : la propriété à démontrer étant initialisée et héréditaire, elle est donc vraie.
+Elle est en particulier vraie pour $i = 0$ : $h(s_0) = h(s) \le \sum\limits_{j=0}^{n-1} w(s_j, s_{j+1}) = d(s, t)$ (puisque $s_0...s_n$ est un plus court chemin de $s$ à $t$). Ce résultat étant vrai quelque soit $s$, $h$ est donc admissible. CQFD.
+
 ## Proposition : optimalité de l'algorithme A*, implémenté par la méthode ```pathfinder```
 Soient $s, t \in S$ et $h$ une heuristique admissible pour la recherche de $t$.
 Si l'appel de la méthode ```pathfinder``` avec comme paramètres les sommets $s$ et $t$ retourne un chemin, alors ce dernier est un plus court chemin de $s$ à $t$.
@@ -59,4 +81,4 @@ En reprenant le même raisonnement fait précédemment pour la majoration de $f(
 
 Ainsi, dans tous les cas, la propriété est héréditaire.
 
-- Conclusion : la propriété étant initialisée et héréditaire, elle est alors vraie. Elle est en particulier vraie pour le dernier sommet $t$ ; $f(t) = f(a_n) \le d' \lt d$, ce qui contredit l'égalité désignée par $\star$. L'hypothèse d'un chemin plus court que celui retourné par A* aboutit à une contradiction, ce qui prouve l'optimalité du chemin renvoyé par l'algorithme A*.
+- Conclusion : la propriété étant initialisée et héréditaire, elle est alors vraie. Elle est en particulier vraie pour le dernier sommet $t$ ; $f(t) = f(a_n) \le d' \lt d$, ce qui contredit l'égalité désignée par $\star$. L'hypothèse d'un chemin plus court que celui retourné par A* aboutit à une contradiction, ce qui prouve l'optimalité du chemin renvoyé par l'algorithme A*. CQFD.
