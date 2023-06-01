@@ -6,22 +6,16 @@ from math import floor
 from pathfinder.road_network import Node
 import networkx as nx
 
-# print(repr(img))
-# plt.scatter(x=500, y=400, c="#FF4633", linewidths=1.3, edgecolors="#7A0C00", s=200, alpha=0.6)
-
 
 class Station(Node):
     """
     Représente une station.
-    Hérite de la classe Node qui représente un point d'un graphe.
+    Hérite de la classe Node qui représente un noeud d'un graphe.
     """
-    def __init__(self, id, name, x, y, capacity, current_people):
+    def __init__(self, id, name, x, y):
         super().__init__(id, x, y)
         self.name = name
-        self.capacity = capacity
-        self.current_people = current_people
         self.current_gondola = 0
-        self.is_main_station = False
 
     def add_gondola(self) -> None:
         self.current_gondola = self.current_gondola + 1
@@ -39,7 +33,7 @@ class Map:
     """
     def __init__(self, city_map: str, db: Database = None):
         self.map = city_map
-        self.image = np.asarray(Image.open(city_map))
+        self.image = np.asarray(Image.open(self.map))
         self.fig, self.ax = plt.subplots()
         self.db = db
         self.graph = None
@@ -55,8 +49,6 @@ class Map:
         """
         x = event.xdata
         y = event.ydata
-        # print(event.xdata)
-        # print(event.ydata)
         self.db.set("INSERT INTO stations (name, localisation_x, localisation_y) VALUES ('test', " + str(floor(x)) + "," + str(floor(y)) + ");")
 
     def display_interactive_map(self) -> None:
@@ -80,7 +72,6 @@ class Map:
                      s=str(station.get_id()),
                      horizontalalignment="center",
                      bbox=dict(boxstyle="round", color="#FF4633", alpha=0.6))
-
         plt.axis([0, 1014, 0, 830])
         plt.imshow(self.image, extent=(0, 1014, 0, 830))
         plt.show()
@@ -88,27 +79,14 @@ class Map:
     def get_stations(self) -> list[Station]:
         """
         :return: L'ensemble des stations de la ville.
-        # TODO: vérifier si ça concorde bien avec la BDD!
         """
-        stations = self.db.get("SELECT * FROM stations")
+        stations = self.db.get("SELECT id, name, localisation_x, localisation_y FROM stations")
         stations_object = []
         for i in range(len(stations)):
             station = stations[i]
             id, name, x, y = station[0], station[1], station[2], station[3]
-            stations_object.append(Station(id, name, x, y, station[4], station[5]))
-
+            stations_object.append(Station(id, name, x, y))
         return stations_object
-
-    def get_station_by_id(self, id: int) -> Station | None:
-        """
-        Retourne la station possédant l'id en paramètre.
-        :param id:
-        :return:
-        """
-        for station in self.get_stations():
-            if station.get_id() == id:
-                return station
-        return None
 
     def set_adjacency_matrix(self, matrix: list[list]) -> None:
         """

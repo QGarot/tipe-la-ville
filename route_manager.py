@@ -4,26 +4,6 @@ from math import ceil
 from build_network.map import Map
 
 
-class Queue:
-    """
-    Classe implémentant la structure de file d'attente.
-    """
-    def __init__(self):
-        self.content = []
-
-    def is_empty(self):
-        return len(self.content) == 0
-
-    def push(self, x):
-        self.content.append(x)
-
-    def pull(self):
-        return self.content.pop(0)
-
-    def front(self):
-        return self.content[0]
-
-
 class RouteRequest:
     """
     Classe représentant une demande de trajet.
@@ -116,7 +96,7 @@ class GondolaManager:
         # 1. On détermine les trajets planifiés qui ont pour station d'arrivée la station souhaitée.
         #    MAJ de t : t <- minimum des temps restants de chacun de trajets
         req = db.get("SELECT min(arrival) FROM scheduled_routes WHERE destination_id = " + str(route_start_node_id) + ";")
-        if req != [(None,)]:
+        if req != [(None,)]:  # s'il existe bien un minimum...
             for scheduled_route in req:
                 arrival = scheduled_route[0]  # date d'arrivée
                 current_time = time.time()

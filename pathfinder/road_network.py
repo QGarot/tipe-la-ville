@@ -16,18 +16,27 @@ class Point:
 
     @classmethod
     def get_euclidian_distance(cls, p1: Self, p2: Self) -> float:
+        """
+        Norme 2 dans R²
+        """
         dx = p2.get_x() - p1.get_x()
         dy = p2.get_y() - p1.get_y()
-        return sqrt(dx ** 2 + dy ** 2) * 50 / 8
+        return sqrt(dx ** 2 + dy ** 2) * 50 / 8  # Prise en compte de l'échelle
 
     @classmethod
     def get_manhattan_distance(cls, n1: Self, n2: Self) -> float:
+        """
+        Norme 1 dans R²
+        """
         dx = abs(n2.get_x() - n1.get_x())
         dy = abs(n2.get_y() - n1.get_y())
-        return (dx + dy) * 50 / 8
+        return (dx + dy) * 50 / 8  # Prise en compte de l'échelle
 
     @classmethod
     def heuristic_null(cls, n1: Self, n2: Self) -> float:
+        """
+        Fonction nulle
+        """
         return 0
 
 
@@ -54,7 +63,7 @@ class Node(Point):
         """
         :param n1:
         :param n2:
-        :return: Retourne le noeud possédant la valeur de f la plus petite
+        :return: Retourne le noeud possédant la plus petite valeur de f
         """
         f1 = n1.get_f()
         f2 = n2.get_f()
@@ -197,7 +206,6 @@ class RoadNetwork:
         for node in self.get_nodes():
             if node.get_id() == id:
                 return node
-
         return None
 
     def set_network_matrix(self) -> None:
@@ -242,7 +250,6 @@ class RoadNetwork:
         for j in range(len(self.get_adjacency_matrix())):
             if self.get_adjacency_matrix()[i][j] == 1:
                 neighbors.append(self.get_node_by_id(j + 1))
-
         return neighbors
 
     def build_path_to(self, start: Node, final: Node) -> list[Node]:
@@ -265,7 +272,7 @@ class RoadNetwork:
         :return: la durée d'un trajet
         """
         distance = self.path_weight(path)
-        return ceil(distance * 60 / 50000)
+        return ceil(distance * 60 / 50000)  # Prise en compte de la vitesse moyenne d'une cabine
 
     def weight(self, n1: Node, n2: Node) -> float:
         """
@@ -329,7 +336,7 @@ class RoadNetwork:
             for neighbor in self.get_neighbors(u):
                 new_cost = u.get_cost() + self.weight(u, neighbor)
                 if neighbor.get_cost() is None or new_cost < neighbor.get_cost():
-                    # Mise à jour du coût de déplacement, du noeud parent et que l'heuristique
+                    # Mise à jour du coût de déplacement, du noeud parent et de l'heuristique
                     neighbor.set_cost(new_cost)
                     neighbor.set_parent_node(u)
                     neighbor.set_heuristic(heuristic(neighbor, goal))
@@ -359,7 +366,6 @@ class RoadNetwork:
         for heuristic in heuristics:
             path_info = self.pathfinder(start_node_id, final_node_id, heuristic)
             loops_number = path_info[1]
-            # print(path_info[0])
             self.reset_nodes_properties()
             heuristic_names.append(heuristic.__name__)
             loops_set.append(loops_number)
